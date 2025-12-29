@@ -23,3 +23,9 @@ export const OFFLINE_GROUNDING_RESOURCES = {
         benefit: "Interrupts dissociation and pulls you back to the present moment."
     }
 };
+
+export const EMERGENCY_CONTACTS = [
+    { name: "988 Lifeline", phone: "988", description: "Emotional support & suicide prevention" },
+    { name: "Crisis Text Line", phone: "741741", description: "Text support 24/7" },
+    { name: "Emergency Services", phone: "911", description: "Immediate physical danger" }
+];
