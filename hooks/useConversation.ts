@@ -10,7 +10,7 @@ import { TOOL_NAMES } from '@/lib/constants';
 import type { ConversationMessage, UseConversationReturn } from '@/types';
 
 export function useConversation(): UseConversationReturn {
-  const { state, activateTool, deactivateTool } = useSessionContext();
+  const { state, setStatus, addTranscriptEntry, activateTool, deactivateTool } = useSessionContext();
   const { addEntry } = useTranscript();
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
 
@@ -79,6 +79,7 @@ export function useConversation(): UseConversationReturn {
   const conversation = useElevenLabsConversation({
     onConnect: () => {
       console.log('[ElevenLabs] Connected to conversational AI');
+      setStatus('active');
       // Add welcome message
       const welcomeMessage: ConversationMessage = {
         type: 'agent',
@@ -87,9 +88,11 @@ export function useConversation(): UseConversationReturn {
       };
       setMessages(prev => [...prev, welcomeMessage]);
       addEntry('ai', welcomeMessage.content!);
+
     },
     onDisconnect: () => {
       console.log('[ElevenLabs] Disconnected from conversational AI');
+      setStatus('ended');
     },
     onMessage: (message) => {
       console.log('[ElevenLabs] Message received:', message);
@@ -107,6 +110,12 @@ export function useConversation(): UseConversationReturn {
           };
           setMessages(prev => [...prev, aiMessage]);
           addEntry('ai', msgContent);
+          addTranscriptEntry({
+            id: Math.random().toString(36).substr(2, 9),
+            speaker: 'ai',
+            text: msgContent,
+            timestamp: new Date()
+          });
         } else if (source === 'user') {
           const userMessage: ConversationMessage = {
             type: 'user',
@@ -115,11 +124,18 @@ export function useConversation(): UseConversationReturn {
           };
           setMessages(prev => [...prev, userMessage]);
           addEntry('user', msgContent);
+          addTranscriptEntry({
+            id: Math.random().toString(36).substr(2, 9),
+            speaker: 'user',
+            text: msgContent,
+            timestamp: new Date()
+          });
         }
       }
     },
     onError: (error) => {
       console.error('[ElevenLabs] Error:', error);
+      setStatus('error');
       const errorMessage: ConversationMessage = {
         type: 'error',
         content: 'Connection error occurred. Please try again.',
@@ -132,6 +148,8 @@ export function useConversation(): UseConversationReturn {
   // Connect to ElevenLabs Conversational AI
   const connect = useCallback(async () => {
     const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
+    setStatus('connecting');
+
 
     if (!agentId) {
       console.error('[ElevenLabs] Agent ID not configured. Set NEXT_PUBLIC_ELEVENLABS_AGENT_ID in .env.local');
@@ -152,6 +170,11 @@ export function useConversation(): UseConversationReturn {
       await conversation.startSession({
         agentId,
         connectionType: 'webrtc',
+        // Enable automatic language detection if supported by the model
+        // This ensures the AI responds in the same language the user speaks
+        overrides: {
+          // Add overrides here if needed
+        },
         clientTools: {
           // Register client-side tools that AI can call
           alertEmergencyServices: async (args: { priority: 'high' | 'medium' }) => {

@@ -1,164 +1,151 @@
 "use client";
 
-import { useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mic, Shield, Clock, AlertCircle } from 'lucide-react';
+import { Mic, Shield, Clock, AlertCircle, WifiOff, Settings, Info, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PermissionModal } from '@/components/PermissionModal';
+import { SOSButton } from '@/components/SOSButton';
+import { OfflineGuide } from '@/components/OfflineGuide';
 import { useSession } from '@/hooks/useSession';
+import { useConversation } from '@/hooks/useConversation';
 import { US_EMERGENCY_NUMBERS } from '@/lib/constants';
+import { GlassContainer } from '@/components/GlassContainer';
+import { cn } from '@/lib/constants';
+import { SessionSummary } from '@/components/SessionSummary';
 
 export default function HomePage() {
   const router = useRouter();
   const { startSession, setAutoCallEmergency, setIncognito, state } = useSession();
+  const { status, connect, disconnect, isSpeaking } = useConversation();
   const [showPermissionModal, setShowPermissionModal] = useState(false);
 
+  const resources = Object.values(US_EMERGENCY_NUMBERS);
+
   const handleStart = () => {
-    setShowPermissionModal(true);
+    if (state.autoCallEmergency === undefined) {
+      setShowPermissionModal(true);
+    } else {
+      connect();
+    }
   };
 
-  const handlePermissionAllow = (autoCall: boolean) => {
+  const onPermissionAllow = (autoCall: boolean) => {
     setAutoCallEmergency(autoCall);
-    setIncognito(false);
-    startSession();
     setShowPermissionModal(false);
-    router.push('/session');
+    connect();
   };
-
-  const handlePermissionDeny = () => {
-    setShowPermissionModal(false);
-  };
-
-  const resources = [
-    {
-      name: US_EMERGENCY_NUMBERS.emergency.name,
-      phone: US_EMERGENCY_NUMBERS.emergency.phone,
-      description: US_EMERGENCY_NUMBERS.emergency.description,
-      color: 'red'
-    },
-    {
-      name: US_EMERGENCY_NUMBERS.suicide_prevention.name,
-      phone: US_EMERGENCY_NUMBERS.suicide_prevention.phone,
-      description: US_EMERGENCY_NUMBERS.suicide_prevention.description,
-      color: 'blue'
-    },
-    {
-      name: US_EMERGENCY_NUMBERS.poison_control.name,
-      phone: US_EMERGENCY_NUMBERS.poison_control.phone,
-      description: US_EMERGENCY_NUMBERS.poison_control.description,
-      color: 'blue'
-    },
-  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col">
-      {showPermissionModal && (
-        <PermissionModal
-          isOpen={showPermissionModal}
-          onAllow={handlePermissionAllow}
-          onDeny={handlePermissionDeny}
-        />
-      )}
+    <div className="flex flex-col min-h-[100dvh] safe-bottom">
+      {state.status === 'ended' && <SessionSummary />}
 
-      <header className="flex items-center justify-between p-6 border-b border-slate-800">
+      <PermissionModal
+        isOpen={showPermissionModal}
+        onAllow={onPermissionAllow}
+        onDeny={() => setShowPermissionModal(false)}
+      />
+
+
+      {/* App Header */}
+      <header className="p-6 flex items-center justify-between z-10">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Mic className="w-6 h-6 text-white" />
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+            <Shield className="w-4 h-4 text-primary" />
           </div>
-          <h1 className="text-xl font-bold text-white">Smart Crisis Counselor</h1>
+          <h1 className="text-lg font-semibold tracking-tight text-white/90">CrisisHelp</h1>
         </div>
-        <div className="flex items-center gap-2 text-sm text-green-400">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse-slow" />
-          <span>System Ready</span>
-        </div>
+        <button className="p-2 rounded-full glass-button">
+          <Settings className="w-5 h-5 text-white/70" />
+        </button>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center p-6 space-y-8 max-w-4xl mx-auto">
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-full border border-slate-700">
-            <Shield className="w-4 h-4 text-blue-400" />
-            <span className="text-sm text-slate-300">AI-Powered Crisis Support</span>
-          </div>
+      <main className="flex-1 flex flex-col items-center justify-center px-6 gap-12 relative overflow-hidden">
+        {/* Connection Status Badge */}
+        <div className={cn(
+          "px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all duration-500 z-10",
+          status === 'connected' ? "bg-green-500/10 border-green-500/30 text-green-400" :
+            status === 'connecting' ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400 animate-pulse" :
+              "bg-white/5 border-white/10 text-white/40"
+        )}>
+          {status === 'connected' ? 'Session Active' : status === 'connecting' ? 'Connecting...' : 'Secure & Anonymous'}
+        </div>
 
-          <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight">
-            You're not alone
+        {/* Central Pulse UI */}
+        <div className="relative w-full aspect-square max-w-[280px] flex items-center justify-center">
+          {/* Animated Background Rings */}
+          {(status === 'connected' || status === 'connecting') && (
+            <>
+              <div className="absolute inset-0 rounded-full border border-primary/20 animate-pulse-ring" style={{ animationDelay: '0s' }} />
+              <div className="absolute inset-0 rounded-full border border-primary/20 animate-pulse-ring" style={{ animationDelay: '1s' }} />
+            </>
+          )}
+
+          <button
+            onClick={status === 'connected' ? disconnect : handleStart}
+            className={cn(
+              "relative z-10 w-48 h-48 rounded-full flex flex-col items-center justify-center gap-4 transition-all duration-700 overflow-hidden shadow-[0_0_80px_-20px_rgba(31,154,248,0.4)]",
+              status === 'connected' ? "bg-primary text-white scale-110" : "glass-card text-white/80 hover:scale-105"
+            )}
+          >
+            {/* Mesh gradient inside button for depth */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+
+            <Mic className={cn(
+              "w-12 h-12 transition-transform duration-500",
+              isSpeaking && "scale-125",
+              status === 'connected' ? "text-white" : "text-primary"
+            )} />
+            <span className="font-bold text-sm tracking-wide">
+              {status === 'connected' ? 'Tap to End' : 'Start Session'}
+            </span>
+          </button>
+        </div>
+
+        <div className="text-center space-y-4 max-w-xs z-10">
+          <h2 className="text-2xl font-bold text-white tracking-tight animate-float">
+            You're safe here.
           </h2>
-
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            I'm here to help you through this difficult moment. Together, we'll work through what you're experiencing and connect you with the right support.
+          <p className="text-slate-400 text-sm leading-relaxed">
+            I'm your AI counselor, available 24/7 to listen and help you through this moment.
           </p>
         </div>
+      </main>
 
-        <button
-          onClick={handleStart}
-          className="group relative w-full max-w-md px-8 py-6 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-2xl font-bold text-xl transition-all duration-300 shadow-2xl shadow-blue-600/30 hover:shadow-blue-600/50 min-h-[80px]"
-        >
-          <div className="absolute inset-0 rounded-2xl bg-blue-500 animate-pulse-slow opacity-0 group-hover:opacity-30 transition-opacity" />
-          <div className="relative flex items-center justify-center gap-4">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Mic className="w-6 h-6" />
-            </div>
-            <span>Start Voice Help</span>
-          </div>
-        </button>
+      {/* Bottom Controls / Bottom Sheet Background */}
+      <footer className="px-6 pb-10 space-y-6 z-10">
+        <SOSButton />
 
-        <div className="flex items-start gap-2 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg max-w-md">
-          <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-yellow-200">
-            <p className="font-semibold mb-1">Emergency Disclaimer</p>
-            <p>If you are in immediate danger, call 911 directly instead of using this service.</p>
-          </div>
+        <div className="relative w-full h-[1px] bg-white/5 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/30 to-transparent animate-shimmer" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-          <div className="flex items-start gap-4 p-6 bg-slate-800/50 rounded-xl border border-slate-700">
-            <Mic className="w-8 h-8 text-blue-400 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-white mb-2">Voice-First Support</h3>
-              <p className="text-sm text-slate-400">Speak naturally and receive empathetic, calm guidance in real-time</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-6 bg-slate-800/50 rounded-xl border border-slate-700">
-            <Clock className="w-8 h-8 text-blue-400 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-white mb-2">24/7 Available</h3>
-              <p className="text-sm text-slate-400">Get immediate support whenever you need it, day or night</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-6 bg-slate-800/50 rounded-xl border border-slate-700">
-            <Shield className="w-8 h-8 text-blue-400 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-white mb-2">Safe & Private</h3>
-              <p className="text-sm text-slate-400">Your conversations are confidential and you control your data</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="w-full max-w-3xl">
-          <h3 className="text-lg font-semibold text-white mb-4 text-center">
-            Emergency Resources
+        <div className="flex flex-col gap-4">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-center">
+            Trusted Emergency Resources
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {resources.map((resource) => (
+          <div className="grid grid-cols-2 gap-3">
+            {resources.slice(1, 3).map((resource) => (
               <a
                 key={resource.name}
                 href={`tel:${resource.phone}`}
-                className="flex flex-col p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-blue-500 transition-colors"
+                className="flex items-center justify-between p-4 glass-card rounded-2xl group active:scale-95 transition-all"
               >
-                <p className="font-semibold text-white mb-1">{resource.name}</p>
-                <p className="text-xl font-bold text-blue-400 mb-1">{resource.phone}</p>
-                <p className="text-xs text-slate-400">{resource.description}</p>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">{resource.name}</p>
+                  <p className="text-sm font-black text-white">{resource.phone}</p>
+                </div>
+                <Phone className="w-4 h-4 text-primary opacity-50 group-hover:opacity-100 transition-opacity" />
               </a>
             ))}
           </div>
         </div>
-      </main>
 
-      <footer className="p-6 text-center text-sm text-slate-500 border-t border-slate-800">
-        <p>This service provides support but does not replace professional medical or emergency services.</p>
+        <p className="text-[10px] text-center text-white/20 italic max-w-[200px] mx-auto">
+          Experimental AI system. In immediate danger? Always dial 911 first.
+        </p>
       </footer>
     </div>
   );
 }
+

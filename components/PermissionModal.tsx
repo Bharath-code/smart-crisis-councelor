@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Mic, MapPin, Shield, Check, X } from 'lucide-react';
+import { Mic, MapPin, Shield, Check, X, Bell } from 'lucide-react';
 import { cn } from '@/lib/constants';
+import { GlassContainer } from './GlassContainer';
 
 interface PermissionModalProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ export function PermissionModal({ isOpen, onAllow, onDeny }: PermissionModalProp
         navigator.permissions.query({ name: 'microphone' as PermissionName }).then(result => {
           setMicrophonePermission(result.state as any);
         });
-        
+
         navigator.permissions.query({ name: 'geolocation' as PermissionName }).then(result => {
           setLocationPermission(result.state as any);
         });
@@ -33,7 +34,7 @@ export function PermissionModal({ isOpen, onAllow, onDeny }: PermissionModalProp
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       if (autoCallEmergency) {
-        await navigator.geolocation.getCurrentPosition(() => {});
+        await navigator.geolocation.getCurrentPosition(() => { });
       }
       onAllow(autoCallEmergency);
     } catch (error) {
@@ -44,100 +45,89 @@ export function PermissionModal({ isOpen, onAllow, onDeny }: PermissionModalProp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl overflow-hidden">
-        <div className="p-6 space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-white">
-              Before we start
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-500">
+      <GlassContainer className="w-full max-w-md overflow-hidden shadow-[0_0_100px_-20px_rgba(31,154,248,0.3)] animate-in slide-in-from-bottom-10 duration-700">
+        <div className="p-8 space-y-8">
+          <header className="space-y-2">
+            <h2 className="text-3xl font-black text-white tracking-tight">
+              Privacy First.
             </h2>
-            <p className="text-slate-400">
-              We need a few permissions to provide emergency assistance if needed.
+            <p className="text-white/50 text-sm leading-relaxed">
+              To assist you effectively, we need access to your microphone and location. All data is encrypted and temporary.
             </p>
-          </div>
+          </header>
 
           <div className="space-y-4">
-            <div className="flex items-start gap-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-              <Mic className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-white mb-1">
-                  Microphone Access
-                </h3>
-                <p className="text-sm text-slate-400">
-                  Required to hear you and provide voice assistance
-                </p>
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 group">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 transition-transform group-hover:scale-110">
+                <Mic className="w-5 h-5 text-primary" />
               </div>
-              {microphonePermission === 'granted' && (
-                <Check className="w-5 h-5 text-green-500 flex-shrink-0 ml-auto" />
-              )}
+              <div className="flex-1">
+                <h3 className="font-bold text-white text-sm">Voice Analysis</h3>
+                <p className="text-[10px] text-white/40">Listen for distress signals</p>
+              </div>
+              {microphonePermission === 'granted' && <Check className="w-4 h-4 text-green-500" />}
             </div>
 
-            <div className="flex items-start gap-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-              <MapPin className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-white mb-1">
-                  Location Access
-                </h3>
-                <p className="text-sm text-slate-400">
-                  Required to share your location with emergency services if needed
-                </p>
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 group">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 transition-transform group-hover:scale-110">
+                <MapPin className="w-5 h-5 text-primary" />
               </div>
-              {locationPermission === 'granted' && (
-                <Check className="w-5 h-5 text-green-500 flex-shrink-0 ml-auto" />
-              )}
+              <div className="flex-1">
+                <h3 className="font-bold text-white text-sm">Location Services</h3>
+                <p className="text-[10px] text-white/40">Direct emergency responders</p>
+              </div>
+              {locationPermission === 'granted' && <Check className="w-4 h-4 text-green-500" />}
             </div>
 
-            <div className="flex items-start gap-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-              <Shield className="w-6 h-6 text-blue-500 mt-1 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-white mb-1">
+            <button
+              onClick={() => setAutoCallEmergency(!autoCallEmergency)}
+              className={cn(
+                "w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-500 group",
+                autoCallEmergency ? "bg-primary/10 border-primary/50" : "bg-white/5 border-white/5"
+              )}
+            >
+              <div className={cn(
+                "w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-500",
+                autoCallEmergency ? "bg-primary border-primary" : "bg-white/5 border-white/10"
+              )}>
+                <Shield className={cn("w-5 h-5", autoCallEmergency ? "text-white" : "text-white/20")} />
+              </div>
+              <div className="flex-1 text-left">
+                <h3 className={cn("font-bold text-sm", autoCallEmergency ? "text-primary" : "text-white/60")}>
                   Auto-Call Emergency
                 </h3>
-                <p className="text-sm text-slate-400 mb-3">
-                  Automatically call 911 when a life-threatening emergency is detected
-                </p>
-                <button
-                  onClick={() => setAutoCallEmergency(!autoCallEmergency)}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-2 rounded-lg transition-all',
-                    'border-2 w-full',
-                    autoCallEmergency
-                      ? 'bg-green-500/10 border-green-500 text-green-400'
-                      : 'bg-slate-700/50 border-slate-600 text-slate-400'
-                  )}
-                >
-                  {autoCallEmergency ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span className="text-sm font-medium">Enabled (Recommended)</span>
-                    </>
-                  ) : (
-                    <>
-                      <X className="w-4 h-4" />
-                      <span className="text-sm font-medium">Disabled</span>
-                    </>
-                  )}
-                </button>
+                <p className="text-[10px] text-white/40">Detect life-threatening crises</p>
               </div>
-            </div>
+              <div className={cn(
+                "w-10 h-6 rounded-full relative transition-colors duration-500",
+                autoCallEmergency ? "bg-primary" : "bg-white/10"
+              )}>
+                <div className={cn(
+                  "absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-500",
+                  autoCallEmergency ? "left-5" : "left-1"
+                )} />
+              </div>
+            </button>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-4 pt-4">
             <button
               onClick={onDeny}
-              className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors"
+              className="flex-1 px-6 py-4 rounded-2xl font-bold text-white/40 hover:text-white transition-colors"
             >
-              Cancel
+              Later
             </button>
             <button
               onClick={handleAllow}
-              className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors shadow-lg shadow-blue-600/30"
+              className="flex-[2] px-6 py-4 bg-primary text-white rounded-2xl font-black text-sm tracking-widest uppercase shadow-[0_15px_30px_-10px_rgba(31,154,248,0.5)] active:scale-95 transition-all"
             >
-              Allow & Start
+              Agree & Connect
             </button>
           </div>
         </div>
-      </div>
+      </GlassContainer>
     </div>
   );
 }
+

@@ -8,8 +8,18 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Smart Crisis Counselor',
   description: 'AI-powered crisis counselor with real-time voice support',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
-  themeColor: '#020617',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'CrisisHelp',
+  },
+  formatDetection: {
+    telephone: true,
+  },
+  manifest: '/manifest.json',
+  icons: {
+    apple: '/icons/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({
@@ -23,6 +33,17 @@ export default function RootLayout({
         <SessionProvider>
           {children}
         </SessionProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

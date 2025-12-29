@@ -24,7 +24,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
       const autoCallEmergency = localStorage.getItem(STORAGE_KEYS.AUTO_CALL_EMERGENCY) === 'true';
       const incognito = localStorage.getItem(STORAGE_KEYS.INCOGNITO_MODE) === 'true';
-      
+
       let deviceType: DeviceType = 'desktop';
       if (window.innerWidth <= 768) {
         deviceType = 'mobile';
@@ -63,7 +63,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   });
 
   const setStatus = useCallback((status: SessionStatus) => {
-    setState(prev => ({ ...prev, status }));
+    setState(prev => {
+      const updates: Partial<SessionState> = { status };
+
+      if (status === 'active' && !prev.startTime) {
+        updates.startTime = new Date();
+        updates.endTime = null;
+      } else if (status === 'ended') {
+        updates.endTime = new Date();
+      }
+
+      return { ...prev, ...updates };
+    });
   }, []);
 
   const addTranscriptEntry = useCallback((entry: TranscriptEntry) => {
@@ -104,7 +115,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const resetSession = useCallback(() => {
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-    
+
     if (typeof window !== 'undefined' && !state.userId) {
       const newUserId = `user-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
       localStorage.setItem(STORAGE_KEYS.USER_ID, newUserId);
@@ -118,10 +129,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       endTime: null,
       toolsActive: new Set<ToolName>(),
       sessionId,
-      userId: state.userId || localStorage.getItem(STORAGE_KEYS.USER_ID),
+      userId: state.userId || (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.USER_ID) : null),
       connectionQuality: 'good'
     }));
   }, [state.userId]);
+
 
   return (
     <SessionContext.Provider value={{
