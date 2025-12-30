@@ -116,7 +116,8 @@ export default function HomePage() {
                   onClick={status === 'connected' ? disconnect : handleStart}
                   className={cn(
                     "group relative overflow-hidden glass-button px-8 md:px-12 py-5 md:py-6 flex items-center justify-between w-full md:w-auto min-w-[320px] active-scale transition-all",
-                    status === 'connected' ? "border-primary/40 text-primary bg-primary/5" : "text-white"
+                    status === 'connected' ? "border-primary/40 text-primary bg-primary/5" : "text-white",
+                    status === 'disconnected' && "animate-glow-primary border-primary/40"
                   )}
                 >
                   {/* Alive Glow Effect */}

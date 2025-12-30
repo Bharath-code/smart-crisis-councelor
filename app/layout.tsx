@@ -23,8 +23,6 @@ export const metadata: Metadata = {
     telephone: true,
   },
   manifest: '/manifest.json',
-  themeColor: '#020617',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover',
   icons: {
     apple: [
       { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
@@ -34,6 +32,15 @@ export const metadata: Metadata = {
       { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
   },
+};
+
+export const viewport = {
+  themeColor: '#020617',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({

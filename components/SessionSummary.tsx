@@ -19,8 +19,8 @@ export function SessionSummary() {
     }, [state.startTime, state.endTime]);
 
     return (
-        <div className="fixed inset-0 z-[120] bg-slate-950/80 backdrop-blur-3xl flex flex-col p-8 animate-in fade-in duration-1000">
-            <div className="flex-1 flex flex-col items-center justify-center space-y-12 max-w-sm mx-auto w-full">
+        <div className="fixed inset-0 z-[120] bg-slate-950/80 backdrop-blur-3xl flex flex-col p-4 md:p-8 animate-in fade-in duration-1000 overflow-y-auto">
+            <div className="flex-1 flex flex-col items-center justify-center space-y-8 md:space-y-12 max-w-sm mx-auto w-full py-12 md:py-0">
 
                 <div className="relative animate-reveal">
                     <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />

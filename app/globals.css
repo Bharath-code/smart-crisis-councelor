@@ -288,6 +288,32 @@
   }
 }
 
+@keyframes panic-strobe {
+
+  0%,
+  100% {
+    background-color: rgba(239, 68, 68, 0.4);
+  }
+
+  50% {
+    background-color: rgba(239, 68, 68, 0.1);
+  }
+}
+
+@keyframes glow-primary {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(11, 165, 233, 0.2);
+    border-color: rgba(11, 165, 233, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(11, 165, 233, 0.6);
+    border-color: rgba(11, 165, 233, 0.6);
+  }
+}
+
 @keyframes bounce-subtle {
 
   0%,
@@ -298,6 +324,10 @@
   50% {
     transform: translateY(-2px);
   }
+}
+
+.animate-glow-primary {
+  animation: glow-primary 3s ease-in-out infinite;
 }
 
 .animate-pulse-slow {
