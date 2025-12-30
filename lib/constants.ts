@@ -99,7 +99,8 @@ export const STORAGE_KEYS = {
   USER_ID: "smart_crisis_user_id",
   AUTO_CALL_EMERGENCY: "auto_call_emergency",
   INCOGNITO_MODE: "incognito_mode",
-  LAST_SESSION_ID: "last_session_id"
+  LAST_SESSION_ID: "last_session_id",
+  EMERGENCY_CONTACT: "emergency_contact"
 };
 
 export function cn(...classes: (string | undefined | null | false)[]): string {

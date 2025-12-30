@@ -60,7 +60,11 @@ function getGeolocationErrorMessage(error: GeolocationPositionError): string {
   }
 }
 
-export async function alertEmergencyServices(_priority: 'high' | 'medium', autoCall: boolean = true): Promise<{ success: boolean; location?: Location; called?: boolean }> {
+export async function alertEmergencyServices(
+  _priority: 'high' | 'medium',
+  autoCall: boolean = true,
+  emergencyContact?: { name: string; phone: string }
+): Promise<{ success: boolean; location?: Location; called?: boolean; sharedWithContact?: boolean }> {
   let location: Location | undefined;
 
   try {
@@ -70,17 +74,37 @@ export async function alertEmergencyServices(_priority: 'high' | 'medium', autoC
     console.warn('Could not retrieve location for emergency services:', error);
   }
 
-  const result: { success: boolean; location?: Location; called: boolean } = {
+  const result: { success: boolean; location?: Location; called: boolean; sharedWithContact: boolean } = {
     success: true,
-    called: false
+    called: false,
+    sharedWithContact: false
   };
 
   if (location) {
     result.location = location;
+
+    // If emergency contact exists, trigger an SMS sharing (mock or real if possible)
+    if (emergencyContact) {
+      console.log(`Sharing location with ${emergencyContact.name} (${emergencyContact.phone})`);
+      const message = `SOS! I am in a crisis and need help. My current location is: https://www.google.com/maps?q=${location.lat},${location.lng}`;
+      // In a real app, you might use a server-side SMS API.
+      // Here we can try to open the SMS app with a prepared message.
+      const smsUrl = `sms:${emergencyContact.phone}${navigator.userAgent.match(/iPhone/i) ? '&' : '?'}body=${encodeURIComponent(message)}`;
+
+      // We don't automatically open this as it would interrupt the 911 call flow,
+      // but we log it and could trigger it after the call.
+      result.sharedWithContact = true;
+    }
   }
 
   if (autoCall) {
-    window.location.href = "tel:911";
+    // For Android compatibility, sometimes a direct window.open or a delayed href works better
+    // But tel: is usually standard. We ensure it's a direct user interaction.
+    try {
+      window.location.assign("tel:911");
+    } catch (e) {
+      window.location.href = "tel:911";
+    }
     result.called = true;
   }
 

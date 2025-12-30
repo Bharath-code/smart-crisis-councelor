@@ -4,7 +4,10 @@ const ASSETS_TO_CACHE = [
     '/manifest.json',
     '/globals.css',
     '/favicon.ico',
-    // We would add more fonts or static icons here if they exist
+    '/icons/icon-192x192.png',
+    '/icons/icon-512x512.png',
+    '/icons/maskable-icon.png',
+    '/icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {

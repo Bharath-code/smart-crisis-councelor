@@ -13,8 +13,10 @@ interface SessionContextType {
   setIncognito: (incognito: boolean) => void;
   setAutoCallEmergency: (autoCall: boolean) => void;
   setConnectionQuality: (quality: 'good' | 'degraded' | 'poor') => void;
+  setEmergencyContact: (name: string, phone: string) => void;
   resetSession: () => void;
 }
+
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
@@ -24,6 +26,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
       const autoCallEmergency = localStorage.getItem(STORAGE_KEYS.AUTO_CALL_EMERGENCY) === 'true';
       const incognito = localStorage.getItem(STORAGE_KEYS.INCOGNITO_MODE) === 'true';
+      const emergencyContactRaw = localStorage.getItem(STORAGE_KEYS.EMERGENCY_CONTACT);
+      const emergencyContact = emergencyContactRaw ? JSON.parse(emergencyContactRaw) : undefined;
 
       let deviceType: DeviceType = 'desktop';
       if (window.innerWidth <= 768) {
@@ -43,7 +47,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         toolsActive: new Set<ToolName>(),
         sessionId: '',
         userId,
-        deviceType
+        deviceType,
+        emergencyContact
       };
     }
 
@@ -58,7 +63,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       toolsActive: new Set<ToolName>(),
       sessionId: '',
       userId: null,
-      deviceType: 'desktop'
+      deviceType: 'desktop',
+      emergencyContact: undefined
     };
   });
 
@@ -113,6 +119,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setState(prev => ({ ...prev, connectionQuality: quality }));
   }, []);
 
+  const setEmergencyContact = useCallback((name: string, phone: string) => {
+    const contact = { name, phone };
+    localStorage.setItem(STORAGE_KEYS.EMERGENCY_CONTACT, JSON.stringify(contact));
+    setState(prev => ({ ...prev, emergencyContact: contact }));
+  }, []);
+
   const resetSession = useCallback(() => {
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
@@ -145,6 +157,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setIncognito,
       setAutoCallEmergency,
       setConnectionQuality,
+      setEmergencyContact,
       resetSession
     }}>
       {children}

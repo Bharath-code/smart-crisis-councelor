@@ -1,5 +1,11 @@
 export type Speaker = "user" | "ai";
 
+export interface EmergencyContact {
+  name: string;
+  phone: string;
+}
+
+
 export type SessionStatus = "idle" | "connecting" | "active" | "ended" | "error" | "reconnecting";
 
 export type ConnectionQuality = "good" | "degraded" | "poor";
@@ -37,7 +43,9 @@ export interface SessionState {
   sessionId: string;
   userId: string | null;
   deviceType: DeviceType;
+  emergencyContact?: EmergencyContact;
 }
+
 
 export interface SessionMetrics {
   sessionId: string;

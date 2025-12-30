@@ -4,27 +4,38 @@ import { useState } from 'react';
 import { Phone, MapPin, Loader2, AlertTriangle } from 'lucide-react';
 import { alertEmergencyServices } from '@/lib/tools';
 import { cn } from '@/lib/constants';
+import { useSession } from '@/hooks/useSession';
+
 
 export function SOSButton() {
+    const { state } = useSession();
     const [isActivating, setIsActivating] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
 
     const handleSOS = async () => {
         setIsActivating(true);
         setError(null);
+
+        // Tactile feedback
+        if ('vibrate' in navigator) {
+            navigator.vibrate([100, 50, 100]);
+        }
+
         try {
-            const result = await alertEmergencyServices('high', true);
+            const result = await alertEmergencyServices('high', true, state.emergencyContact);
             if (!result.success) {
                 setError('Failed to share location. Calling 911 anyway.');
-                window.location.href = "tel:911";
+                window.location.assign("tel:911");
             }
         } catch (err) {
             console.error('SOS failed:', err);
-            window.location.href = "tel:911";
+            window.location.assign("tel:911");
         } finally {
             setTimeout(() => setIsActivating(false), 2000);
         }
     };
+
 
     return (
         <div className="w-full flex flex-col gap-[var(--space-sm)]">
